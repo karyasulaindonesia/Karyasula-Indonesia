@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Admin Control Panel - CV Karyasula Indonesia Steel</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #CE1126;
+            --primary-dark: #A50D1C;
+            --dark: #0F172A;
+            --bg-light: #F1F5F9;
+            --border-color: #CBD5E1;
+            --success: #16A34A;
+            --danger: #DC2626;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            background-color: var(--bg-light);
+            color: #334155;
+        }
+
+        .header {
+            background: var(--dark);
+            color: white;
+            padding: 15px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 18px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-kembali {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-kembali:hover {
+            background: var(--primary-dark);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card-sub {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-sub h2 {
+            font-size: 16px;
+            color: var(--dark);
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary);
+            padding-left: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            color: #475569;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group input[type="email"],
+        .form-group textarea, 
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 8px 12px;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+
+        .form-group input:focus, 
+        .form-group textarea:focus, 
+        .form-group select:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-save {
+            background: var(--dark);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-save:hover {
+            background: var(--primary);
+        }
+
+        .btn-secondary {
+            background: #64748B;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .btn-danger:hover {
+            background: #B91C1C;
+        }
+
+        /* TABEL DYNAMIC LAYANAN */
+        .layanan-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .layanan-table th, 
+        .layanan-table td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        .layanan-table th {
+            background: #F8FAFC;
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        .status-msg {
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* PREVIEW GAMBAR */
+        .img-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 1px solid var(--border-color);
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-sliders"></i> Panel Pengendali Editor (edit admin.html)</h1>
+        <a href="index.html" class="btn-kembali"><i class="fa-solid fa-arrow-left"></i> Lihat Website Utama</a>
+    </div>
+
+    <div class="container">
+
+        <!-- SUB 1A: EDIT TEKS HERO BANNER -->
+        <div class="card-sub">
+            <h2>1A. Edit Teks Hero Banner</h2>
+            <form id="formHeroText">
+                <div class="form-group">
+                    <label>Judul Utama Hero</label>
+                    <input type="text" id="hero_judul" placeholder="Contoh: MANUFAKTUR INDONESIA: HIGH-TECH STEEL">
+                </div>
+                <div class="form-group">
+                    <label>Sub-Judul Hero</label>
+                    <textarea id="hero_sub" rows="2" placeholder="Deskripsi singkat hero banner..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Teks Tombol CTA</label>
+                    <input type="text" id="hero_tombol" placeholder="Lihat Layanan Kami">
+                </div>
+                <button type="button" onclick="simpanSubHeroText()" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Teks Hero
+                </button>
+                <div id="msgHeroText" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- SUB 1B: EDIT GAMBAR BACKGROUND HERO (SISTEM UPLOAD FILE JPG/PNG) -->
+        <div class="card-sub">
+            <h2>1B. Edit Gambar Background Hero</h2>
+            <form id="formHeroBg">
+                <div class="form-group">
+                    <label><i class="fa-solid fa-file-image"></i> Pilih File Gambar Dari Komputer / HP</label>
+                    <input type="file" id="hero_file_input" accept="image/jpeg, image/jpg, image/png, image/webp" onchange="previewImage(event)">
+                    <small style="color: #64748b; display: block; margin-top: 6px; font-size: 11px;">
+                        * Format yang didukung: JPG, JPEG, PNG, WEBP.
+                    </small>
+                </div>
+
+                <!-- Preview Gambar -->
+                <div class="form-group">
+                    <label>Pratinjau Gambar:</label>
+                    <img id="hero_bg_preview" class="img-preview" src="" alt="Pratinjau Gambar" style="display: none;">
+                </div>
+
+                <button type="button" onclick="uploadDanSimpanBg()" class="btn-save" style="background: #2563EB;">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Simpan Gambar
+                </button>
+                <div id="msgHeroBg" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- SUB 2: KELOLA LAYANAN & PRODUK -->
+        <div class="card-sub">
+            <h2>2. Kelola Sub-Layanan & Produk</h2>
+            
+            <form id="formLayanan" style="background: #F8FAFC; padding: 18px; border-radius: 6px; margin-bottom: 20px; border: 1px dashed var(--border-color);">
+                <input type="hidden" id="layanan_id">
+                <div class="form-group">
+                    <label>Nama Layanan / Produk</label>
+                    <input type="text" id="layanan_nama" placeholder="Contoh: PRODUK PRESISI CNC" required>
+                </div>
+                <div class="form-group">
+                    <label>Ikon FontAwesome</label>
+                    <select id="layanan_ikon">
+                        <option value="fa-gears">fa-gears (Roda Gigi/Mesin Presisi)</option>
+                        <option value="fa-robot">fa-robot (Robotika/Otomasi)</option>
+                        <option value="fa-screwdriver-wrench">fa-screwdriver-wrench (Peralatan/Custom)</option>
+                        <option value="fa-industry">fa-industry (Pabrik/Konstruksi)</option>
+                        <option value="fa-microchip">fa-microchip (Teknologi/Komponen)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Deskripsi Layanan</label>
+                    <textarea id="layanan_desk" rows="3" placeholder="Penjelasan mengenai layanan..." required></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="simpanItemLayanan()" class="btn-save" style="background: var(--primary);">
+                        <i class="fa-solid fa-plus"></i> Simpan / Tambah Layanan
+                    </button>
+                    <button type="button" onclick="resetFormLayanan()" class="btn-secondary">Reset Form</button>
+                </div>
+            </form>
+
+            <table class="layanan-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px; text-align: center;">Ikon</th>
+                        <th>Nama Layanan</th>
+                        <th>Deskripsi</th>
+                        <th style="width: 130px; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelLayananBody">
+                    <tr><td colspan="4" style="text-align: center;">Memuat data layanan...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SUB 3: EDIT STATISTIK PERUSAHAAN -->
+        <div class="card-sub">
+            <h2>3. Edit Sub-Statistik Perusahaan</h2>
+            <form id="formStat">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div class="form-group">
+                        <label>Target Kualitas Tinggi</label>
+                        <input type="number" id="stat_kualitas">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Teknologi Modern</label>
+                        <input type="number" id="stat_tekno">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Tim Ahli</label>
+                        <input type="number" id="stat_tim">
+                    </div>
+                    <div class="form-group">
+                        <label>Pengiriman Tepat Waktu (%)</label>
+                        <input type="number" id="stat_waktu">
+                    </div>
+                </div>
+                <button type="button" onclick="simpanSubStatistik()" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Sub Statistik
+                </button>
+                <div id="msgStat" class="status-msg"></div>
+            </form>
+        </div>
+
+        <!-- SUB 4: EDIT KONTAK FOOTER -->
+        <div class="card-sub">
+            <h2>4. Edit Sub-Kontak & Alamat</h2>
+            <form id="formKontak">
+                <div class="form-group">
+                    <label>Alamat Pabrik / Kantor</label>
+                    <input type="text" id="kontak_alamat">
+                </div>
+                <div class="form-group">
+                    <label>Email Perusahaan</label>
+                    <input type="email" id="kontak_email">
+                </div>
+                <div class="form-group">
+                    <label>Nomor Telepon</label>
+                    <input type="text" id="kontak_telp">
+                </div>
+                <button type="button" onclick="simpanSubKontak()" class="btn-save">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan Sub Kontak
+                </button>
+                <div id="msgKontak" class="status-msg"></div>
+            </form>
+        </div>
+
+    </div>
+
+    <script>
+        // KONEKSI SUPABASE BARU ANDA
+        const SUPABASE_URL = "https://kqdmbivizhkqoskwdmbz.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZG1iaXZpemhrcW9za3dkbWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MzUyNTgsImV4cCI6MjEwODExMTI1OH0.yvwvmXDK5HmUu3dxOCc-a6WULNZTe6JJIwS5pXUp0CQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // MUAT DATA SAAT HALAMAN DIBUKA
+        async function muatDataAdmin() {
+            // 1. Ambil Data Konfigurasi Hero, Stat, dan Kontak
+            const { data: config, error } = await supabaseClient.from('konfigurasi_hero').select('*').eq('id', 1).maybeSingle();
+            
+            if (config) {
+                document.getElementById('hero_judul').value = config.judul_utama || '';
+                document.getElementById('hero_sub').value = config.sub_judul || '';
+                document.getElementById('hero_tombol').value = config.teks_tombol || '';
+
+                // Menampilkan preview gambar background jika ada tersimpan
+                if (config.url_bg_cloudinary) {
+                    const imgPreview = document.getElementById('hero_bg_preview');
+                    imgPreview.src = config.url_bg_cloudinary;
+                    imgPreview.style.display = 'block';
+                }
+
+                document.getElementById('stat_kualitas').value = config.stat_kualitas || 300;
+                document.getElementById('stat_tekno').value = config.stat_tekno || 755;
+                document.getElementById('stat_tim').value = config.stat_tim || 134;
+                document.getElementById('stat_waktu').value = config.stat_waktu || 100;
+
+                document.getElementById('kontak_alamat').value = config.kontak_alamat || '';
+                document.getElementById('kontak_email').value = config.kontak_email || '';
+                document.getElementById('kontak_telp').value = config.kontak_telp || '';
+            }
+
+            // 2. Ambil Data Layanan
+            muatTabelLayanan();
+        }
+
+        // PREVIEW GAMBAR LOKAL
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('hero_bg_preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // --- 1A. SIMPAN SUB HERO TEKS ---
+        async function simpanSubHeroText() {
+            const updates = {
+                judul_utama: document.getElementById('hero_judul').value,
+                sub_judul: document.getElementById('hero_sub').value,
+                teks_tombol: document.getElementById('hero_tombol').value
+            };
+
+            const { error } = await supabaseClient.from('konfigurasi_hero').upsert({ id: 1, ...updates });
+            tampilkanStatus('msgHeroText', error ? '❌ Gagal: ' + error.message : '✅ Teks Hero Berhasil Diperbarui!', error);
+        }
+
+        // --- 1B. PROSES & UPLOAD FILE GAMBAR LOKAL (JPG/PNG) KE SUPABASE DATABASE ---
+        async function uploadDanSimpanBg() {
+            const fileInput = document.getElementById('hero_file_input');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert("Harap pilih file gambar JPG/PNG terlebih dahulu!");
+                return;
+            }
+
+            tampilkanStatus('msgHeroBg', '⏳ Memproses & menyimpan gambar, mohon tunggu...', false);
+
+            try {
+                // Konversi file gambar lokal ke format Data URL (Base64)
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const imageDataUrl = e.target.result;
+
+                    // Simpan Data URL Gambar langsung ke Database Supabase
+                    const { error: dbError } = await supabaseClient
+                        .from('konfigurasi_hero')
+                        .upsert({ id: 1, url_bg_cloudinary: imageDataUrl });
+
+                    if (dbError) throw dbError;
+
+                    tampilkanStatus('msgHeroBg', '✅ Gambar Background File Berhasil Disimpan!', false);
+                };
+
+                reader.onerror = function() {
+                    throw new Error("Gagal membaca file gambar lokal.");
+                };
+
+                reader.readAsDataURL(file);
+
+            } catch (err) {
+                tampilkanStatus('msgHeroBg', '❌ Gagal: ' + err.message, true);
+            }
+        }
+
+        // --- 2. SIMPAN SUB STATISTIK ---
+        async function simpanSubStatistik() {
+            const updates = {
+                stat_kualitas: parseInt(document.getElementById('stat_kualitas').value) || 0,
+                stat_tekno: parseInt(document.getElementById('stat_tekno').value) || 0,
+                stat_tim: parseInt(document.getElementById('stat_tim').value) || 0,
+                stat_waktu: parseInt(document.getElementById('stat_waktu').value) || 0
+            };
+
+            const { error } = await supabaseClient.from('konfigurasi_hero').upsert({ id: 1, ...updates });
+            tampilkanStatus('msgStat', error ? '❌ Gagal: ' + error.message : '✅ Sub-Statistik Berhasil Diperbarui!', error);
+        }
+
+        // --- 3. SIMPAN SUB KONTAK ---
+        async function simpanSubKontak() {
+            const updates = {
+                kontak_alamat: document.getElementById('kontak_alamat').value,
+                kontak_email: document.getElementById('kontak_email').value,
+                kontak_telp: document.getElementById('kontak_telp').value
+            };
+
+            const { error } = await supabaseClient.from('konfigurasi_hero').upsert({ id: 1, ...updates });
+            tampilkanStatus('msgKontak', error ? '❌ Gagal: ' + error.message : '✅ Sub-Kontak Berhasil Diperbarui!', error);
+        }
+
+        // --- 4. KELOLA SUB LAYANAN ---
+        async function muatTabelLayanan() {
+            const tbody = document.getElementById('tabelLayananBody');
+            const { data, error } = await supabaseClient.from('layanan_produk').select('*').order('id', { ascending: true });
+
+            if (error || !data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Belum ada layanan tersimpan. Gunakan form di atas untuk menambahkan.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map(item => `
+                <tr>
+                    <td style="text-align: center;"><i class="fa-solid ${item.ikon}" style="font-size: 18px; color: var(--primary);"></i></td>
+                    <td><strong>${escapeHtml(item.nama_layanan)}</strong></td>
+                    <td>${escapeHtml(item.deskripsi)}</td>
+                    <td style="text-align: center;">
+                        <button class="btn-save" style="padding: 4px 8px; font-size: 10px; background: #334155;" onclick="editLayanan(${item.id}, \`${escapeHtml(item.nama_layanan)}\`, \`${escapeHtml(item.deskripsi)}\`, '${item.ikon}')">Edit</button>
+                        <button class="btn-danger" onclick="hapusLayanan(${item.id})">Hapus</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function simpanItemLayanan() {
+            const id = document.getElementById('layanan_id').value;
+            const nama_layanan = document.getElementById('layanan_nama').value;
+            const deskripsi = document.getElementById('layanan_desk').value;
+            const ikon = document.getElementById('layanan_ikon').value;
+
+            if (!nama_layanan || !deskripsi) {
+                alert("Harap isi Nama Layanan dan Deskripsi!");
+                return;
+            }
+
+            let result;
+            if (id) {
+                result = await supabaseClient.from('layanan_produk').update({ nama_layanan, deskripsi, ikon }).eq('id', id);
+            } else {
+                result = await supabaseClient.from('layanan_produk').insert([{ nama_layanan, deskripsi, ikon }]);
+            }
+
+            if (result.error) {
+                alert("❌ Gagal menyimpan layanan: " + result.error.message);
+            } else {
+                alert("✅ Layanan berhasil disimpan!");
+                resetFormLayanan();
+                muatTabelLayanan();
+            }
+        }
+
+        function editLayanan(id, nama, desk, ikon) {
+            document.getElementById('layanan_id').value = id;
+            document.getElementById('layanan_nama').value = nama;
+            document.getElementById('layanan_desk').value = desk;
+            document.getElementById('layanan_ikon').value = ikon;
+            window.scrollTo({ top: document.getElementById('formLayanan').offsetTop - 20, behavior: 'smooth' });
+        }
+
+        async function hapusLayanan(id) {
+            if (confirm("Apakah Anda yakin ingin menghapus layanan ini?")) {
+                const { error } = await supabaseClient.from('layanan_produk').delete().eq('id', id);
+                if (error) alert("❌ Gagal menghapus: " + error.message);
+                else muatTabelLayanan();
+            }
+        }
+
+        function resetFormLayanan() {
+            document.getElementById('layanan_id').value = '';
+            document.getElementById('formLayanan').reset();
+        }
+
+        // HELPER STATUS & ESCAPE HTML
+        function tampilkanStatus(elemId, msg, isError) {
+            const el = document.getElementById(elemId);
+            el.innerText = msg;
+            el.style.color = isError ? '#DC2626' : '#16A34A';
+            setTimeout(() => { el.innerText = ''; }, 4000);
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+        }
+
+        window.addEventListener('DOMContentLoaded', muatDataAdmin);
+    </script>
+</body>
+</html>
