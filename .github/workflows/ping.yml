@@ -1,0 +1,15 @@
+name: Auto Ping Web
+
+on:
+  schedule:
+    # Berjalan otomatis setiap hari pada jam 00:00 UTC
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Tombol untuk menjalankan manual lewat tab Actions di GitHub
+
+jobs:
+  ping-website:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP Request to GitHub Pages
+        run: |
+          curl -I https://karyasulaindonesia.github.io/Karyasula-Indonesia/
