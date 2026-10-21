@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Karyasula Indonesia Steel - High-tech Manufacturing</title>
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #CE1126;
+            --primary-dark: #A50D1C;
+            --dark: #0F172A;
+            --gray-dark: #1E293B;
+            --light: #F8FAFC;
+            --text-main: #334155;
+            --border-color: #E2E8F0;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            scroll-behavior: smooth; 
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text-main); 
+            background-color: #ffffff;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px);
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 12px 6%;
+            border-bottom: 1px solid var(--border-color); 
+            z-index: 1000;
+        }
+
+        .logo-area { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            text-decoration: none; 
+        }
+
+        .logo-area img { 
+            height: 46px; 
+            width: auto; 
+        }
+
+        .logo-text .title { 
+            font-weight: 800; 
+            font-size: 15px; 
+            color: var(--dark); 
+            display: block;
+            line-height: 1.2;
+        }
+
+        .logo-text .subtitle { 
+            font-weight: 600; 
+            font-size: 10px; 
+            color: #64748B; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+
+        .nav-links { 
+            display: flex; 
+            gap: 24px; 
+            align-items: center; 
+            list-style: none; 
+            margin: 0; 
+            padding: 0; 
+        }
+
+        .nav-links a { 
+            text-decoration: none; 
+            color: var(--gray-dark); 
+            font-weight: 600; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover { 
+            color: var(--primary); 
+        }
+
+        .btn-cta { 
+            background: var(--primary); 
+            color: white !important; 
+            padding: 9px 18px; 
+            border-radius: 4px; 
+            font-weight: 700 !important; 
+            transition: background 0.2s;
+        }
+
+        .btn-cta:hover {
+            background: var(--primary-dark);
+        }
+
+        /* HERO SECTION */
+        .hero-section {
+            height: 100vh; 
+            min-height: 600px; 
+            background-color: var(--dark);
+            background-image: url('background.jpg');
+            background-position: center; 
+            background-size: cover; 
+            background-repeat: no-repeat;
+            position: relative; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 6%; 
+            color: white;
+        }
+
+        .hero-overlay { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.5) 100%); 
+            z-index: 1; 
+        }
+
+        .hero-content { 
+            position: relative; 
+            z-index: 2; 
+            max-width: 650px; 
+            margin-top: 50px; 
+        }
+
+        .hero-tag { 
+            background: var(--primary); 
+            color: white; 
+            display: inline-block; 
+            padding: 5px 12px; 
+            font-size: 11px; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin-bottom: 20px; 
+            border-radius: 3px; 
+            letter-spacing: 0.5px;
+        }
+
+        .hero-content h1 { 
+            font-size: 40px; 
+            font-weight: 800; 
+            line-height: 1.25; 
+            margin: 0 0 20px 0; 
+            text-transform: uppercase; 
+            color: #ffffff; 
+        }
+
+        .hero-content p { 
+            font-size: 16px; 
+            color: #E2E8F0; 
+            line-height: 1.6; 
+            margin: 0 0 32px 0; 
+        }
+
+        .hero-btn { 
+            background: #ffffff; 
+            color: var(--primary) !important; 
+            text-decoration: none; 
+            padding: 14px 28px; 
+            display: inline-block; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            font-size: 13px; 
+            border-radius: 4px; 
+            transition: all 0.2s;
+        }
+
+        .hero-btn:hover {
+            background: var(--primary);
+            color: #ffffff !important;
+        }
+
+        /* LAYANAN & PRODUK SECTION */
+        .section-padding { 
+            padding: 90px 6%; 
+            background: var(--light); 
+        }
+
+        .section-title-center { 
+            text-align: center; 
+            margin-bottom: 55px; 
+        }
+
+        .section-title-center h2 { 
+            font-size: 28px; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+            color: var(--dark); 
+            margin: 0 0 12px 0; 
+        }
+
+        .section-title-center .line { 
+            width: 60px; 
+            height: 4px; 
+            background: var(--primary); 
+            margin: 0 auto; 
+        }
+
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 30px; 
+        }
+
+        .product-card { 
+            background: white; 
+            border-radius: 8px; 
+            padding: 35px 30px; 
+            border: 1px solid var(--border-color); 
+            border-bottom: 4px solid var(--border-color); 
+            transition: all 0.3s ease; 
+        }
+
+        .product-card:hover { 
+            transform: translateY(-5px); 
+            border-bottom-color: var(--primary); 
+            box-shadow: 0 12px 30px rgba(206,17,38,0.1); 
+        }
+
+        .product-icon { 
+            font-size: 38px; 
+            color: var(--primary); 
+            margin-bottom: 20px; 
+        }
+
+        .product-card h3 { 
+            font-size: 18px; 
+            font-weight: 700; 
+            margin: 0 0 12px 0; 
+            text-transform: uppercase; 
+            color: var(--dark); 
+        }
+
+        .product-card p { 
+            font-size: 14px; 
+            color: #64748B; 
+            line-height: 1.6; 
+            margin: 0; 
+        }
+
+        /* STATISTIK SECTION */
+        .stats-section { 
+            background: var(--dark); 
+            color: white; 
+            padding: 20px 0; 
+        }
+
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            text-align: center; 
+        }
+
+        .stat-box { 
+            padding: 35px 20px; 
+        }
+
+        .stat-box i { 
+            font-size: 32px; 
+            color: var(--primary); 
+            margin-bottom: 12px; 
+        }
+
+        .stat-number { 
+            font-size: 38px; 
+            font-weight: 800; 
+            margin-bottom: 4px; 
+            color: white; 
+        }
+
+        .stat-label { 
+            font-size: 12px; 
+            text-transform: uppercase; 
+            color: #94A3B8; 
+            font-weight: 600; 
+        }
+
+        /* FOOTER */
+        .main-footer { 
+            background: var(--gray-dark); 
+            color: white; 
+            padding: 60px 6% 30px 6%; 
+            font-size: 14px; 
+        }
+
+        .footer-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 40px; 
+            margin-bottom: 40px; 
+        }
+
+        .footer-logo-area { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            margin-bottom: 20px; 
+        }
+
+        .footer-logo-area img { 
+            height: 42px; 
+            width: auto; 
+        }
+
+        .footer-logo-area h3 { 
+            font-size: 15px; 
+            font-weight: 800; 
+            margin: 0; 
+            color: white; 
+        }
+
+        .footer-info p { 
+            color: #94A3B8; 
+            line-height: 1.6; 
+            margin: 10px 0; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+        }
+
+        .footer-info i { 
+            color: var(--primary); 
+            width: 16px; 
+        }
+
+        .footer-bottom { 
+            border-top: 1px solid #334155; 
+            padding-top: 22px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            color: #64748B; 
+            font-size: 12px; 
+        }
+
+        .open-gate-link { 
+            color: #64748B; 
+            text-decoration: none; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: color 0.2s;
+        }
+
+        .open-gate-link:hover { 
+            color: var(--primary); 
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar">
+        <a href="index.html" class="logo-area">
+            <img src="logo ksl.png" alt="Logo Karyasula Indonesia Steel">
+            <div class="logo-text">
+                <span class="title">CV KARYASULA INDONESIA STEEL</span>
+                <span class="subtitle">High-tech Manufacturing</span>
+            </div>
+        </a>
+        <ul class="nav-links">
+            <li><a href="#hero">Beranda</a></li>
+            <li><a href="#layanan">Layanan</a></li>
+            <li><a href="kontak.html">Kontak</a></li>
+            <li><a href="#" onclick="aksesPelayananADM(event)">Pelayanan ADM</a></li>
+            <li><a href="#" class="btn-cta">Minta Penawaran</a></li>
+        </ul>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="hero" class="hero-section">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <div class="hero-tag">Solusi Manufaktur Terdepan</div>
+            <h1 id="txt_judul_hero">MANUFAKTUR INDONESIA: HIGH-TECH STEEL &amp; INOVASI</h1>
+            <p id="txt_sub_hero">Penyedia solusi rekayasa manufaktur presisi tinggi, otomatisasi mesin industri, dan struktur baja fabrikasi standar internasional.</p>
+            <a href="#layanan" id="txt_tombol_hero" class="hero-btn">Pelajari Lebih Lanjut</a>
+        </div>
+    </section>
+
+    <!-- SECTION LAYANAN & PRODUK DINAMIS -->
+    <section id="layanan" class="section-padding">
+        <div class="section-title-center">
+            <h2>Layanan &amp; Produk Utama</h2>
+            <div class="line"></div>
+        </div>
+        
+        <div class="product-grid" id="container_layanan">
+            <!-- Data Layanan dimuat dinamis dari database Supabase -->
+        </div>
+    </section>
+
+    <!-- STATISTIK PERUSAHAAN -->
+    <section class="stats-section">
+        <div class="stats-grid">
+            <div class="stat-box">
+                <i class="fa-solid fa-award"></i>
+                <div class="stat-number" id="num_kualitas" data-target="300">0</div>
+                <div class="stat-label">Kualitas Tinggi</div>
+            </div>
+            <div class="stat-box">
+                <i class="fa-solid fa-microchip"></i>
+                <div class="stat-number" id="num_tekno" data-target="755">0</div>
+                <div class="stat-label">Teknologi Modern</div>
+            </div>
+            <div class="stat-box">
+                <i class="fa-solid fa-users"></i>
+                <div class="stat-number" id="num_tim" data-target="134">0</div>
+                <div class="stat-label">Tim Ahli Profesional</div>
+            </div>
+            <div class="stat-box">
+                <i class="fa-solid fa-truck-fast"></i>
+                <div class="stat-number" id="num_waktu" data-target="100">0</div>
+                <div class="stat-label">Pengiriman Tepat Waktu %</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="kontak" class="main-footer">
+        <div class="footer-grid">
+            <div class="footer-info">
+                <div class="footer-logo-area">
+                    <img src="logo ksl.png" alt="Logo KSI">
+                    <h3>CV KARYASULA INDONESIA STEEL</h3>
+                </div>
+                <p>Menyediakan layanan pengerjaan manufaktur baja, permesinan presisi tinggi, dan pengerjaan kustomisasi skala industri berat nasional.</p>
+            </div>
+            <div class="footer-info">
+                <h4 style="text-transform: uppercase; border-left: 3px solid var(--primary); padding-left: 10px; margin-bottom: 20px;">Informasi Kontak</h4>
+                <p><i class="fa-solid fa-location-dot"></i> <span id="txt_alamat">Jl. Industri Raya No. 45</span></p>
+                <p><i class="fa-solid fa-envelope"></i> <span id="txt_email">info@karyasula.com</span></p>
+                <p><i class="fa-solid fa-phone"></i> <span id="txt_telp">(021) 422 2050</span></p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>&copy; 2026 CV Karyasula Indonesia Steel. All Rights Reserved.</div>
+            <div><span onclick="bukaGerbangAdmin()" class="open-gate-link">Open Gate 6</span></div>
+        </div>
+    </footer>
+
+    <!-- LOGIKA JAVASCRIPT & SUPABASE -->
+    <script>
+        // Kredensial Supabase Baru Anda
+        const SUPABASE_URL = "https://kqdmbivizhkqoskwdmbz.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZG1iaXZpemhrcW9za3dkbWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MzUyNTgsImV4cCI6MjEwODExMTI1OH0.yvwvmXDK5HmUu3dxOCc-a6WULNZTe6JJIwS5pXUp0CQ";
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // MODAL VERIFIKASI PELAYANAN ADM
+        function aksesPelayananADM(e) {
+            e.preventDefault();
+            if (prompt("Masukkan Sandi Verifikasi Pelayanan ADM:") === "karyasula123") {
+                window.location.href = "kasir.html";
+            } else { 
+                alert("❌ Sandi Salah!"); 
+            }
+        }
+
+        // OPEN GATE 6 -> MENGARAHKAN KE edit admin.html
+        function bukaGerbangAdmin() {
+            if (prompt("Masukkan Sandi Autentikasi Pengendali Master Panel:") === "karyasula123") {
+                window.location.href = "edit%20admin.html";
+            } else { 
+                alert("❌ Sandi Salah!"); 
+            }
+        }
+
+        // ANIMASI RUNNING NUMBER UNTUK STATISTIK
+        let animated = false;
+        function runningNumber() {
+            if (animated) return; 
+            animated = true;
+            document.querySelectorAll('.stat-number').forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                let count = 0;
+                const speed = Math.ceil(target / 40);
+                const update = () => {
+                    count += speed;
+                    if (count < target) { 
+                        counter.innerText = count; 
+                        setTimeout(update, 25); 
+                    } else {
+                        counter.innerText = target; 
+                    }
+                };
+                update();
+            });
+        }
+
+        // INTEGRASI PEMBACAAN DATA SUPABASE
+        async function muatHalamanUtama() {
+            // 1. Load Konfigurasi Sub Hero, Statistik, & Kontak
+            const { data: config } = await supabaseClient.from('konfigurasi_hero').select('*').eq('id', 1).maybeSingle();
+            
+            if (config) {
+                if (config.judul_utama) document.getElementById('txt_judul_hero').innerText = config.judul_utama;
+                if (config.sub_judul) document.getElementById('txt_sub_hero').innerText = config.sub_judul;
+                if (config.teks_tombol) document.getElementById('txt_tombol_hero').innerText = config.teks_tombol;
+                
+                // MENDUKUNG UPLOAD GAMBAR LANGSUNG (Base64/File/URL)
+                const bgImage = config.url_bg_cloudinary || config.url_bg || config.gambar_bg;
+                if (bgImage) {
+                    document.getElementById('hero').style.backgroundImage = `url('${bgImage}')`;
+                } else {
+                    document.getElementById('hero').style.backgroundImage = `url('background.jpg')`;
+                }
+
+                if (config.stat_kualitas) document.getElementById('num_kualitas').setAttribute('data-target', config.stat_kualitas);
+                if (config.stat_tekno) document.getElementById('num_tekno').setAttribute('data-target', config.stat_tekno);
+                if (config.stat_tim) document.getElementById('num_tim').setAttribute('data-target', config.stat_tim);
+                if (config.stat_waktu) document.getElementById('num_waktu').setAttribute('data-target', config.stat_waktu);
+
+                if (config.kontak_alamat) document.getElementById('txt_alamat').innerText = config.kontak_alamat;
+                if (config.kontak_email) document.getElementById('txt_email').innerText = config.kontak_email;
+                if (config.kontak_telp) document.getElementById('txt_telp').innerText = config.kontak_telp;
+            }
+
+            // 2. Load Data Sub-Layanan Dinamis
+            const { data: layanan } = await supabaseClient.from('layanan_produk').select('*').order('id', { ascending: true });
+            const grid = document.getElementById('container_layanan');
+            
+            if (layanan && layanan.length > 0) {
+                grid.innerHTML = layanan.map(item => `
+                    <div class="product-card">
+                        <div class="product-icon"><i class="fa-solid ${item.ikon}"></i></div>
+                        <h3>${item.nama_layanan}</h3>
+                        <p>${item.deskripsi}</p>
+                    </div>
+                `).join('');
+            }
+
+            // Jalankan animasi angka setelah target ter-update
+            runningNumber();
+        }
+
+        window.addEventListener('DOMContentLoaded', muatHalamanUtama);
+    </script>
+</body>
+</html>
