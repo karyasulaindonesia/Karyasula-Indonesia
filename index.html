@@ -33,9 +33,9 @@
             background-color: #ffffff;
         }
 
-        /* NAVBAR */
+        /* NAVBAR RESPONSIF */
         .navbar {
-            background: rgba(255, 255, 255, 0.95); 
+            background: rgba(255, 255, 255, 0.98); 
             backdrop-filter: blur(10px);
             position: fixed; 
             top: 0; 
@@ -52,34 +52,51 @@
         .logo-area { 
             display: flex; 
             align-items: center; 
-            gap: 12px; 
+            gap: 10px; 
             text-decoration: none; 
+            max-width: 75%;
         }
 
         .logo-area img { 
-            height: 46px; 
+            height: 42px; 
             width: auto; 
+            flex-shrink: 0;
         }
 
         .logo-text .title { 
             font-weight: 800; 
-            font-size: 15px; 
+            font-size: 14px; 
             color: var(--dark); 
             display: block;
             line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .logo-text .subtitle { 
             font-weight: 600; 
-            font-size: 10px; 
+            font-size: 9px; 
             color: #64748B; 
             text-transform: uppercase; 
             letter-spacing: 0.5px;
+            display: block;
+        }
+
+        /* Hamburger Toggle Button */
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: var(--dark);
+            cursor: pointer;
+            padding: 5px;
         }
 
         .nav-links { 
             display: flex; 
-            gap: 24px; 
+            gap: 20px; 
             align-items: center; 
             list-style: none; 
             margin: 0; 
@@ -106,10 +123,67 @@
             border-radius: 4px; 
             font-weight: 700 !important; 
             transition: background 0.2s;
+            text-align: center;
         }
 
         .btn-cta:hover {
             background: var(--primary-dark);
+        }
+
+        /* MEDIA QUERIES UNTUK TAMPILAN HP (MOBILE) */
+        @media (max-width: 992px) {
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: white;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0;
+                border-bottom: 2px solid var(--primary);
+                box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-in-out;
+            }
+
+            .nav-links.active {
+                max-height: 400px; /* Membuka menu */
+            }
+
+            .nav-links li {
+                width: 100%;
+                border-top: 1px solid var(--border-color);
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 14px 6%;
+                width: 100%;
+            }
+
+            .btn-cta {
+                margin: 10px 6%;
+                width: calc(100% - 12%);
+                border-radius: 4px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-text .title {
+                font-size: 12px;
+            }
+            .logo-text .subtitle {
+                font-size: 8px;
+            }
+            .logo-area img {
+                height: 35px;
+            }
         }
 
         /* HERO SECTION */
@@ -159,7 +233,7 @@
         }
 
         .hero-content h1 { 
-            font-size: 40px; 
+            font-size: clamp(26px, 5vw, 40px); 
             font-weight: 800; 
             line-height: 1.25; 
             margin: 0 0 20px 0; 
@@ -168,7 +242,7 @@
         }
 
         .hero-content p { 
-            font-size: 16px; 
+            font-size: clamp(14px, 2vw, 16px); 
             color: #E2E8F0; 
             line-height: 1.6; 
             margin: 0 0 32px 0; 
@@ -381,7 +455,13 @@
                 <span class="subtitle">High-tech Manufacturing</span>
             </div>
         </a>
-        <ul class="nav-links">
+        
+        <!-- Tombol Menu Mobile -->
+        <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <ul class="nav-links" id="navLinks">
             <li><a href="#hero">Beranda</a></li>
             <li><a href="#layanan">Layanan</a></li>
             <li><a href="kontak.html">Kontak</a></li>
@@ -464,10 +544,35 @@
 
     <!-- LOGIKA JAVASCRIPT & SUPABASE -->
     <script>
-        // Kredensial Supabase Baru Anda
+        // Kredensial Supabase
         const SUPABASE_URL = "https://kqdmbivizhkqoskwdmbz.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZG1iaXZpemhrcW9za3dkbWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MzUyNTgsImV4cCI6MjEwODExMTI1OH0.yvwvmXDK5HmUu3dxOCc-a6WULNZTe6JJIwS5pXUp0CQ";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // TOGGLE MENU MOBILE
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+        const toggleIcon = menuToggle.querySelector('i');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            if(navLinks.classList.contains('active')) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-xmark');
+            } else {
+                toggleIcon.classList.remove('fa-xmark');
+                toggleIcon.classList.add('fa-bars');
+            }
+        });
+
+        // Tutup menu otomatis saat link diklik
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.classList.remove('active');
+                toggleIcon.classList.remove('fa-xmark');
+                toggleIcon.classList.add('fa-bars');
+            });
+        });
 
         // MODAL VERIFIKASI PELAYANAN ADM
         function aksesPelayananADM(e) {
@@ -520,7 +625,7 @@
                 if (config.sub_judul) document.getElementById('txt_sub_hero').innerText = config.sub_judul;
                 if (config.teks_tombol) document.getElementById('txt_tombol_hero').innerText = config.teks_tombol;
                 
-                // MENDUKUNG UPLOAD GAMBAR LANGSUNG (Base64/File/URL)
+                // MENDUKUNG UPLOAD GAMBAR LANGSUNG
                 const bgImage = config.url_bg_cloudinary || config.url_bg || config.gambar_bg;
                 if (bgImage) {
                     document.getElementById('hero').style.backgroundImage = `url('${bgImage}')`;
