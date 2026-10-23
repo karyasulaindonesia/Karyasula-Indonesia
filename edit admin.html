@@ -169,11 +169,14 @@
             background: var(--danger);
             color: white;
             border: none;
-            padding: 6px 10px;
+            padding: 10px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-danger:hover {
@@ -250,27 +253,32 @@
             </form>
         </div>
 
-        <!-- SUB 1B: EDIT GAMBAR BACKGROUND HERO (SISTEM UPLOAD FILE JPG/PNG) -->
+        <!-- SUB 1B: EDIT GAMBAR BACKGROUND HERO (CLOUDINARY) -->
         <div class="card-sub">
-            <h2>1B. Edit Gambar Background Hero</h2>
+            <h2>1B. Kelola Background Hero (Cloudinary)</h2>
             <form id="formHeroBg">
                 <div class="form-group">
-                    <label><i class="fa-solid fa-file-image"></i> Pilih File Gambar Dari Komputer / HP</label>
+                    <label><i class="fa-solid fa-file-image"></i> Pilih File Gambar Background (JPG/PNG/WEBP)</label>
                     <input type="file" id="hero_file_input" accept="image/jpeg, image/jpg, image/png, image/webp" onchange="previewImage(event)">
                     <small style="color: #64748b; display: block; margin-top: 6px; font-size: 11px;">
-                        * Format yang didukung: JPG, JPEG, PNG, WEBP (Otomatis dikompresi agar tersimpan cepat).
+                        * Gambar akan diunggah otomatis ke Cloudinary (Cloud: mzqiclga).
                     </small>
                 </div>
 
                 <!-- Preview Gambar -->
                 <div class="form-group">
-                    <label>Pratinjau Gambar:</label>
+                    <label>Pratinjau Background Saat Ini:</label>
                     <img id="hero_bg_preview" class="img-preview" src="" alt="Pratinjau Gambar" style="display: none;">
                 </div>
 
-                <button type="button" onclick="uploadDanSimpanBg()" class="btn-save" style="background: #2563EB;">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Simpan Gambar
-                </button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button type="button" onclick="uploadDanSimpanBg()" class="btn-save" style="background: #2563EB;">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload & Simpan Background
+                    </button>
+                    <button type="button" onclick="hapusBackground()" class="btn-danger">
+                        <i class="fa-solid fa-trash-can"></i> Hapus Background
+                    </button>
+                </div>
                 <div id="msgHeroBg" class="status-msg"></div>
             </form>
         </div>
@@ -377,14 +385,17 @@
     </div>
 
     <script>
-        // KONEKSI SUPABASE BARU ANDA
+        // KONEKSI SUPABASE & CLOUDINARY CONFIG
         const SUPABASE_URL = "https://kqdmbivizhkqoskwdmbz.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZG1iaXZpemhrcW9za3dkbWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MzUyNTgsImV4cCI6MjEwODExMTI1OH0.yvwvmXDK5HmUu3dxOCc-a6WULNZTe6JJIwS5pXUp0CQ";
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // Pengaturan Cloudinary (Preset disesuaikan dengan karyasula_hero)
+        const CLOUDINARY_CLOUD_NAME = "mzqiclga";
+        const CLOUDINARY_UPLOAD_PRESET = "karyasula_hero";
+
         // MUAT DATA SAAT HALAMAN DIBUKA
         async function muatDataAdmin() {
-            // 1. Ambil Data Konfigurasi Hero, Stat, dan Kontak
             const { data: config, error } = await supabaseClient.from('konfigurasi_hero').select('*').eq('id', 1).maybeSingle();
             
             if (config) {
@@ -392,8 +403,8 @@
                 document.getElementById('hero_sub').value = config.sub_judul || '';
                 document.getElementById('hero_tombol').value = config.teks_tombol || '';
 
-                // Menampilkan preview gambar background jika ada tersimpan
-                const bgImage = config.url_bg_cloudinary || config.url_bg || config.gambar_bg;
+                // Menampilkan preview gambar background dari Cloudinary jika ada
+                const bgImage = config.url_bg_cloudinary;
                 if (bgImage) {
                     const imgPreview = document.getElementById('hero_bg_preview');
                     imgPreview.src = bgImage;
@@ -410,11 +421,10 @@
                 document.getElementById('kontak_telp').value = config.kontak_telp || '';
             }
 
-            // 2. Ambil Data Layanan
             muatTabelLayanan();
         }
 
-        // PREVIEW GAMBAR LOKAL
+        // PREVIEW LOKAL SEBELUM UPLOAD
         function previewImage(event) {
             const file = event.target.files[0];
             if (file) {
@@ -426,35 +436,6 @@
                 }
                 reader.readAsDataURL(file);
             }
-        }
-
-        // FUNGSI KOMPRESI GAMBAR AUTOMATIS (Mencegah error payload terlalu besar)
-        function kompresGambar(file, maxWidth, quality, callback) {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = function (event) {
-                const img = new Image();
-                img.src = event.target.result;
-                img.onload = function () {
-                    const canvas = document.createElement('canvas');
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > maxWidth) {
-                        height = Math.round((height * maxWidth) / width);
-                        width = maxWidth;
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
-                    callback(dataUrl);
-                };
-            };
         }
 
         // --- 1A. SIMPAN SUB HERO TEKS ---
@@ -469,41 +450,82 @@
             tampilkanStatus('msgHeroText', error ? '❌ Gagal: ' + error.message : '✅ Teks Hero Berhasil Diperbarui!', error);
         }
 
-        // --- 1B. PROSES, KOMPRESI & UPLOAD FILE GAMBAR LOKAL KE SUPABASE DATABASE ---
+        // --- 1B. UPLOAD KE CLOUDINARY & SIMPAN URL KE SUPABASE ---
         async function uploadDanSimpanBg() {
             const fileInput = document.getElementById('hero_file_input');
             const file = fileInput.files[0];
 
             if (!file) {
-                alert("Harap pilih file gambar JPG/PNG terlebih dahulu!");
+                alert("Harap pilih file gambar terlebih dahulu!");
                 return;
             }
 
-            tampilkanStatus('msgHeroBg', '⏳ Mengompres & menyimpan gambar, mohon tunggu...', false);
+            tampilkanStatus('msgHeroBg', '⏳ Sedang mengunggah ke Cloudinary...', false);
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
 
             try {
-                // Kompres gambar otomatis ke max-width 1200px & kualitas 70% agar file sangat ringan (~150KB)
-                kompresGambar(file, 1200, 0.7, async function (imageDataUrl) {
-                    
-                    // Simpan gambar langsung ke Database Supabase
-                    const { error: dbError } = await supabaseClient
-                        .from('konfigurasi_hero')
-                        .upsert({ id: 1, url_bg_cloudinary: imageDataUrl });
-
-                    if (dbError) {
-                        tampilkanStatus('msgHeroBg', '❌ Gagal: ' + dbError.message, true);
-                    } else {
-                        // Perbarui preview tampilan
-                        const imgPreview = document.getElementById('hero_bg_preview');
-                        imgPreview.src = imageDataUrl;
-                        imgPreview.style.display = 'block';
-
-                        tampilkanStatus('msgHeroBg', '✅ Gambar Background Berhasil Disimpan & Tampil!', false);
-                    }
+                // Request fetch langsung ke Cloudinary API
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+                    method: 'POST',
+                    body: formData
                 });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error?.message || 'Gagal mengunggah ke Cloudinary');
+                }
+
+                const cloudinarySecureUrl = data.secure_url;
+
+                // Simpan URL Cloudinary ke Supabase
+                const { error: dbError } = await supabaseClient
+                    .from('konfigurasi_hero')
+                    .upsert({ id: 1, url_bg_cloudinary: cloudinarySecureUrl });
+
+                if (dbError) {
+                    throw new Error(dbError.message);
+                }
+
+                // Perbarui tampilan preview
+                const imgPreview = document.getElementById('hero_bg_preview');
+                imgPreview.src = cloudinarySecureUrl;
+                imgPreview.style.display = 'block';
+
+                tampilkanStatus('msgHeroBg', '✅ Background berhasil di-upload ke Cloudinary dan disimpan!', false);
+                fileInput.value = ''; // Reset file input
 
             } catch (err) {
                 tampilkanStatus('msgHeroBg', '❌ Gagal: ' + err.message, true);
+            }
+        }
+
+        // --- 1C. HAPUS BACKGROUND ---
+        async function hapusBackground() {
+            if (!confirm("Apakah Anda yakin ingin menghapus background hero ini?")) return;
+
+            tampilkanStatus('msgHeroBg', '⏳ Menghapus background...', false);
+
+            try {
+                // Set kolom url_bg_cloudinary menjadi null di Supabase
+                const { error } = await supabaseClient
+                    .from('konfigurasi_hero')
+                    .upsert({ id: 1, url_bg_cloudinary: null });
+
+                if (error) throw new Error(error.message);
+
+                // Kosongkan preview dan input file
+                const imgPreview = document.getElementById('hero_bg_preview');
+                imgPreview.src = '';
+                imgPreview.style.display = 'none';
+                document.getElementById('hero_file_input').value = '';
+
+                tampilkanStatus('msgHeroBg', '✅ Background berhasil dihapus!', false);
+            } catch (err) {
+                tampilkanStatus('msgHeroBg', '❌ Gagal menghapus: ' + err.message, true);
             }
         }
 
@@ -549,7 +571,7 @@
                     <td>${escapeHtml(item.deskripsi)}</td>
                     <td style="text-align: center;">
                         <button class="btn-save" style="padding: 4px 8px; font-size: 10px; background: #334155;" onclick="editLayanan(${item.id}, \`${escapeHtml(item.nama_layanan)}\`, \`${escapeHtml(item.deskripsi)}\`, '${item.ikon}')">Edit</button>
-                        <button class="btn-danger" onclick="hapusLayanan(${item.id})">Hapus</button>
+                        <button class="btn-danger" style="padding: 4px 8px; font-size: 10px;" onclick="hapusLayanan(${item.id})">Hapus</button>
                     </td>
                 </tr>
             `).join('');
