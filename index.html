@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- VIEWPORT DINAMIS YANG DIKONTROL OLEH JAVASCRIPT -->
+    <meta name="viewport" id="viewportMeta" content="width=device-width, initial-scale=1.0">
     <title>CV Karyasula Indonesia Steel - High-tech Manufacturing</title>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -153,7 +154,7 @@
             }
 
             .nav-links.active {
-                max-height: 400px; /* Membuka menu */
+                max-height: 400px;
             }
 
             .nav-links li {
@@ -442,9 +443,47 @@
         .open-gate-link:hover { 
             color: var(--primary); 
         }
+
+        /* TOMBOL PENGALIH TAMPILAN (FLOATING SWITCH) */
+        .view-switcher {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .view-switcher button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .view-switcher button:hover {
+            background: var(--primary-dark);
+        }
     </style>
 </head>
 <body>
+
+    <!-- TOMBOL PENGALIH MODE MANUAL -->
+    <div class="view-switcher" id="viewSwitcherContainer">
+        <span id="txtStatusMode">Mode: Auto</span>
+        <button id="btnSwitchMode" onclick="toggleViewMode()">Ubah Mode</button>
+    </div>
 
     <!-- NAVBAR -->
     <nav class="navbar">
@@ -544,6 +583,44 @@
 
     <!-- LOGIKA JAVASCRIPT & SUPABASE -->
     <script>
+        // --- LOGIKA PENGATUR VIEWPORT (DESKTOP / MOBILE MODE) ---
+        const viewportMeta = document.getElementById('viewportMeta');
+        const txtStatusMode = document.getElementById('txtStatusMode');
+
+        function applyViewMode() {
+            let savedMode = localStorage.getItem('ksl_view_mode'); // 'desktop', 'mobile', atau null (auto)
+
+            if (savedMode === 'desktop') {
+                // Paksa ukuran desktop dengan lebar viewport tetap 1200px
+                viewportMeta.setAttribute('content', 'width=1200');
+                txtStatusMode.innerText = 'Mode: Paksa Desktop';
+            } else if (savedMode === 'mobile') {
+                // Paksa ukuran mobile standar
+                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                txtStatusMode.innerText = 'Mode: Paksa HP';
+            } else {
+                // Otomatis mengikuti perangkat
+                viewportMeta.setAttribute('content', 'width=device-width, initial-scale=1.0');
+                txtStatusMode.innerText = 'Mode: Otomatis';
+            }
+        }
+
+        function toggleViewMode() {
+            let currentMode = localStorage.getItem('ksl_view_mode');
+            if (!currentMode || currentMode === 'auto') {
+                localStorage.setItem('ksl_view_mode', 'desktop');
+            } else if (currentMode === 'desktop') {
+                localStorage.setItem('ksl_view_mode', 'mobile');
+            } else {
+                localStorage.setItem('ksl_view_mode', 'auto');
+            }
+            applyViewMode();
+            location.reload(); // Muat ulang halaman agar layout merespons perubahan viewport
+        }
+
+        // Jalankan saat pertama kali dimuat
+        applyViewMode();
+
         // Kredensial Supabase
         const SUPABASE_URL = "https://kqdmbivizhkqoskwdmbz.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtxZG1iaXZpemhrcW9za3dkbWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MzUyNTgsImV4cCI6MjEwODExMTI1OH0.yvwvmXDK5HmUu3dxOCc-a6WULNZTe6JJIwS5pXUp0CQ";
