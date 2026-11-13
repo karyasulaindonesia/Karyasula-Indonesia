@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://karyasula-indonesia.vercel.app/sitemap.xml
