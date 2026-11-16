@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#CE1126">
+<title>Portal ADM | CV Karyasula Indonesia Steel</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--red:#e50914;--red-dark:#b80710;--ink:#171b26;--muted:#687080;--line:#e8eaf0;--soft:#f7f8fb}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);background:linear-gradient(145deg,#fff 0%,#fff7f7 48%,#f4f6fa 100%);min-height:100vh}
+header{height:78px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,6vw,80px);box-shadow:0 6px 24px rgba(20,28,45,.05)}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.brand img{width:46px;height:46px;object-fit:contain}
+.brand strong{display:block;font-size:14px;letter-spacing:.1px}
+.brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+.back{color:#424958;text-decoration:none;font-size:13px;font-weight:700}
+.back:hover{color:var(--red)}
+main{width:min(1040px,calc(100% - 36px));margin:68px auto 54px}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;background:#fff0f1;color:var(--red-dark);border:1px solid #ffd7da;border-radius:30px;padding:8px 14px;font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.1;margin:18px 0 12px;letter-spacing:-1.2px}
+.intro{color:var(--muted);font-size:15px;line-height:1.7;max-width:650px;margin:0}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:38px}
+.card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px;box-shadow:0 12px 34px rgba(22,30,48,.06);display:flex;flex-direction:column;min-height:285px;transition:transform .2s,box-shadow .2s,border-color .2s}
+.card:hover{transform:translateY(-4px);border-color:#ffc6cb;box-shadow:0 18px 42px rgba(22,30,48,.1)}
+.icon{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;background:#fff0f1;color:var(--red);font-size:25px}
+.card h2{font-size:22px;margin:22px 0 8px}
+.card p{font-size:13px;line-height:1.7;color:var(--muted);margin:0 0 22px}
+.action{margin-top:auto;display:flex;align-items:center;justify-content:center;gap:10px;border:0;border-radius:10px;padding:14px 18px;background:linear-gradient(135deg,#f01420,#c90814);color:white;text-decoration:none;font-weight:800;font-size:13px;cursor:pointer;box-shadow:0 8px 18px rgba(229,9,20,.16)}
+.action:hover{background:linear-gradient(135deg,#c90814,#a80710)}
+.action.secondary{background:#fff;color:var(--red);border:1px solid #ffd0d4;box-shadow:none}
+.action.secondary:hover{background:#fff5f5}
+.note{margin-top:24px;padding:15px 18px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.7);color:#697181;font-size:12px;line-height:1.65}
+footer{text-align:center;padding:24px;color:#9299a7;font-size:11px}
+@media(max-width:680px){header{height:70px;padding:0 16px}.brand img{width:38px;height:38px}.brand strong{font-size:11px}.brand small{font-size:8px}.back{font-size:11px}main{margin:42px auto}.cards{grid-template-columns:1fr;gap:15px}.card{min-height:245px;padding:23px}h1{font-size:34px}}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="index.html">
+    <img src="logo%20ksl.png" alt="Logo Karyasula" onerror="this.src='https://github.com/karyasulaindonesia/Karyasula-Indonesia/raw/main/logo%20ksl.png'">
+    <span><strong>CV KARYASULA INDONESIA STEEL</strong><small>Portal Administrasi Internal</small></span>
+  </a>
+  <a class="back" href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali</a>
+</header>
+<main>
+  <div class="eyebrow"><i class="fa-solid fa-shield-halved"></i> Akses Internal Perusahaan</div>
+  <h1>Portal ADM</h1>
+  <p class="intro">Pilih sistem administrasi yang ingin Anda gunakan: Kasir, Absensi Karyawan, Data Karyawan, atau Laporan.</p>
+  <section class="cards" aria-label="Pilihan sistem administrasi">
+    <article class="card">
+      <div class="icon"><i class="fa-solid fa-cash-register"></i></div>
+      <h2>Kasir</h2>
+      <p>Kelola pesanan, transaksi penjualan, stok barang, pengadaan, nota digital, dan laporan operasional.</p>
+      <button class="action" type="button" onclick="aksesKasir()"><i class="fa-solid fa-lock"></i> Masuk ke Kasir</button>
+    </article>
+    <article class="card">
+      <div class="icon"><i class="fa-solid fa-calendar-check"></i></div>
+      <h2>Absensi Karyawan</h2>
+      <p>Catat kehadiran, jam masuk dan pulang, serta lihat riwayat absensi menggunakan akun pribadi setiap karyawan.</p>
+      <a class="action secondary" href="absensi.html"><i class="fa-solid fa-arrow-right-to-bracket"></i> Masuk ke Absensi</a>
+    </article>
+    <article class="card">
+      <div class="icon"><i class="fa-solid fa-users"></i></div>
+      <h2>Data Karyawan</h2>
+      <p>Kelola identitas, informasi pekerjaan, dan data pegawai perusahaan dalam satu tempat.</p>
+      <a class="action secondary" href="data-karyawan.html"><i class="fa-solid fa-arrow-right-to-bracket"></i> Buka Data Karyawan</a>
+    </article>
+    <article class="card">
+      <div class="icon"><i class="fa-solid fa-file-lines"></i></div>
+      <h2>Laporan</h2>
+      <p>Lihat dan kelola rekap operasional perusahaan, termasuk ringkasan kegiatan dan administrasi.</p>
+      <a class="action secondary" href="laporan.html"><i class="fa-solid fa-arrow-right-to-bracket"></i> Buka Laporan</a>
+    </article>
+  </section>
+  <div class="note"><i class="fa-solid fa-circle-info"></i> Portal ini tidak meminta sandi saat dibuka. Verifikasi sandi hanya muncul saat memilih Kasir. Absensi menggunakan akun masing-masing karyawan. Akses Data Karyawan dan Laporan dapat dilengkapi dengan pengaturan hak akses sesuai kebutuhan perusahaan.</div>
+</main>
+<footer>© <span id="year"></span> CV Karyasula Indonesia Steel · Portal ADM</footer>
+<script>
+document.getElementById('year').textContent=new Date().getFullYear();
+function aksesKasir(){
+  const sandi=prompt('Masukkan sandi untuk membuka sistem Kasir:');
+  if(sandi===null)return;
+  if(sandi==='karyasula123'){window.location.href='kasir.html';}
+  else{alert('Sandi Kasir salah. Silakan coba kembali.');}
+}
+</script>
+</body>
+</html>
