@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Laporan Absensi · CV Karyasula Indonesia Steel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#fff5f5;color:#202535;font:14px 'Segoe UI',Arial,sans-serif}
+    header{background:#fff;padding:16px 5%;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+    a{color:#d91020;text-decoration:none;font-weight:600}
+    main{max-width:1100px;margin:28px auto;padding:0 16px}
+    section{background:#fff;border:1px solid #eee;border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 6px 20px rgba(0,0,0,0.03)}
+    input,select{padding:10px;border:1px solid #ddd;border-radius:8px;margin:4px 8px 12px 0;font-size:14px}
+    button{padding:10px 16px;background:#d91020;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer;margin-right:6px}
+    button.sec{background:#334155}
+    table{width:100%;border-collapse:collapse;margin-top:14px}
+    td,th{padding:9px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
+    th{background:#f8fafc}
+    .ok{color:#166534;font-weight:600}
+    .late{color:#b45309;font-weight:600}
+    @media print {
+      header, .no-print { display: none !important; }
+      body { background: #fff; }
+      section { border: 0; box-shadow: none; padding: 0; margin: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <b>CV KARYASULA INDONESIA STEEL · LAPORAN ABSENSI</b>
+    <a href="portal-adm.html">&larr; Kembali ke Portal ADM</a>
+  </header>
+
+  <main>
+    <section id="login">
+      <h2 style="margin-top:0">Login Administrator</h2>
+      <input id="email" placeholder="Email admin">
+      <input id="pass" type="password" placeholder="Password">
+      <button onclick="adminLogin()">Masuk</button>
+      <p id="msg" style="color:#d91020"></p>
+    </section>
+
+    <section id="panel" hidden>
+      <h2 style="margin:0 0 4px">LAPORAN REKAPITULASI ABSENSI KARYAWAN</h2>
+      <div style="color:#64748b;margin-bottom:16px">CV KARYASULA INDONESIA STEEL</div>
+
+      <div class="no-print" style="background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;margin-bottom:16px">
+        <label>Bulan: <input id="month" type="month"></label>
+        <label>Karyawan: <select id="empFilter"><option value="">Semua Karyawan</option></select></label>
+        <button onclick="loadReport()">Tampilkan</button>
+        <button class="sec" onclick="window.print()">🖨 Cetak / Simpan PDF</button>
+      </div>
+
+      <p id="summary" style="font-weight:600"></p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Nama Karyawan</th>
+            <th>Bagian</th>
+            <th>Jam Masuk</th>
+            <th>Jam Pulang</th>
+            <th>Status</th>
+            <th class="no-print">Foto Bukti</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+
+      <div style="display:flex;justify-content:space-between;margin-top:60px;padding:0 20px">
+        <div style="text-align:center">Penanggung Jawab Laporan<br><br><br><br>(........................................)</div>
+        <div style="text-align:center">Disahkan Oleh Pimpinan<br><br><br><br>(........................................)</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    async function adminLogin() {
+      const r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+      if (r.error) return $('msg').textContent = r.error.message;
+      await checkSession();
+    }
+
+    async function checkSession() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+      const p = await sb.from('employee_profiles').select('role,active').eq('id', user.id).single();
+      if (p.data?.role !== 'admin' || !p.data?.active) {
+        await sb.auth.signOut();
+        return alert('Akses admin ditolak.');
+      }
+      $('login').hidden = true;
+      $('panel').hidden = false;
+      $('month').value = new Date().toISOString().slice(0, 7);
+
+      const emps = await sb.from('employee_profiles').select('id,full_name').eq('role', 'employee').order('full_name');
+      if (emps.data) {
+        $('empFilter').innerHTML += emps.data.map(e => `<option value="${e.id}">${e.full_name}</option>`).join('');
+      }
+      await loadReport();
+    }
+
+    async function loadReport() {
+      const m = $('month').value;
+      if (!m) return;
+      const s = m + '-01';
+      const d = new Date(s + 'T00:00:00');
+      const e = new Date(d.getFullYear(), d.getMonth() + 1, 1).toLocaleDateString('en-CA');
+
+      let q = sb.from('attendance_records')
+        .select('*, employee_profiles(full_name, department)')
+        .gte('work_date', s)
+        .lt('work_date', e)
+        .order('work_date', { ascending: false });
+
+      const empId = $('empFilter').value;
+      if (empId) q = q.eq('employee_id', empId);
+
+      const r = await q;
+      if (r.error) return alert(r.error.message);
+
+      const tepat = r.data.filter(x => x.status === 'Tepat waktu').length;
+      const telat = r.data.filter(x => x.status === 'Terlambat').length;
+      $('summary').textContent = `Total Kehadiran: ${r.data.length} hari (Tepat waktu: ${tepat} · Terlambat: ${telat})`;
+
+      $('rows').innerHTML = r.data.map(x => `
+        <tr>
+          <td>${formatDate(x.work_date)}</td>
+          <td><b>${x.employee_profiles?.full_name || '-'}</b></td>
+          <td>${x.employee_profiles?.department || '-'}</td>
+          <td>${formatTime(x.checkin_at)}</td>
+          <td>${formatTime(x.checkout_at)}</td>
+          <td class="${x.status === 'Tepat waktu' ? 'ok' : 'late'}">${x.status || '-'}</td>
+          <td class="no-print">
+            ${x.checkin_photo ? `<a href="${x.checkin_photo}" target="_blank">Masuk</a>` : '-'}
+            ${x.checkout_photo ? ` | <a href="${x.checkout_photo}" target="_blank">Pulang</a>` : ''}
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    sb.auth.getSession().then(x => { if (x.data.session) checkSession(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Data Karyawan · CV Karyasula Indonesia Steel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:#fff5f5;color:#202535;font:15px 'Segoe UI',Arial,sans-serif}
+    header{background:#fff;padding:16px 5%;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+    a{color:#d91020;text-decoration:none;font-weight:600}
+    main{max-width:1100px;margin:28px auto;padding:0 16px}
+    section{background:#fff;border:1px solid #eee;border-radius:16px;padding:24px;margin:16px 0;box-shadow:0 6px 20px rgba(0,0,0,0.03)}
+    input{padding:10px;border:1px solid #ddd;border-radius:8px;margin:4px 0 12px;width:100%;font-size:14px}
+    button{padding:9px 14px;background:#d91020;color:#fff;border:0;border-radius:8px;font-weight:600;cursor:pointer;font-size:13px}
+    button.sec{background:#334155}
+    button.warn{background:#d97706}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    td,th{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
+    .badge{padding:3px 9px;border-radius:12px;font-size:12px;font-weight:600}
+    .aktif{background:#dcfce7;color:#166534}
+    .nonaktif{background:#fee2e2;color:#991b1b}
+    .muted{color:#64748b;font-size:13px}
+  </style>
+</head>
+<body>
+  <header>
+    <b>CV KARYASULA INDONESIA STEEL · DATA KARYAWAN</b>
+    <a href="portal-adm.html">&larr; Kembali ke Portal ADM</a>
+  </header>
+
+  <main>
+    <section id="login">
+      <h2 style="margin-top:0">Login Administrator</h2>
+      <input id="email" placeholder="Email admin">
+      <input id="pass" type="password" placeholder="Password">
+      <button onclick="adminLogin()">Masuk</button>
+      <p id="msg" style="color:#d91020"></p>
+    </section>
+
+    <div id="panel" hidden>
+      <!-- FORM TAMBAH KARYAWAN -->
+      <section>
+        <h3 style="margin-top:0">Tambah Akun Karyawan Baru</h3>
+        <div class="grid">
+          <div><label>Username Login *</label><input id="new_u" placeholder="contoh: ahmad"></div>
+          <div><label>Password Awal *</label><input id="new_p" type="password" placeholder="Min. 6 karakter"></div>
+          <div><label>Nama Lengkap *</label><input id="new_name" placeholder="Ahmad Fauzi"></div>
+          <div><label>Departemen / Bagian</label><input id="new_dept" placeholder="Produksi / Gudang / Las"></div>
+          <div><label>No. WhatsApp</label><input id="new_wa" placeholder="0812..."></div>
+          <div><label>Alamat</label><input id="new_addr" placeholder="Alamat domisili"></div>
+        </div>
+        <button id="btnAdd" onclick="addEmployee()">+ Simpan & Buat Akun Karyawan</button>
+      </section>
+
+      <!-- TABEL KARYAWAN -->
+      <section>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0">Daftar Karyawan</h3>
+          <button class="sec" onclick="loadEmployees()">Refresh Data</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Nama Lengkap</th>
+                <th>Bagian</th>
+                <th>WhatsApp</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="empRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    async function adminLogin() {
+      const r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+      if (r.error) return $('msg').textContent = r.error.message;
+      await checkSession();
+    }
+
+    async function checkSession() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+      const p = await sb.from('employee_profiles').select('role,active').eq('id', user.id).single();
+      if (p.data?.role !== 'admin' || !p.data?.active) {
+        await sb.auth.signOut();
+        return alert('Akses admin ditolak.');
+      }
+      $('login').hidden = true;
+      $('panel').hidden = false;
+      await loadEmployees();
+    }
+
+    async function addEmployee() {
+      const u = $('new_u').value.trim();
+      const p = $('new_p').value;
+      const name = $('new_name').value.trim();
+      if (!u || !p || !name) return alert('Username, Password, dan Nama Lengkap wajib diisi!');
+      if (p.length < 6) return alert('Password minimal 6 karakter.');
+
+      const btn = $('btnAdd');
+      btn.disabled = true; btn.textContent = 'Membuat akun...';
+
+      const { error } = await sb.rpc('admin_create_employee', {
+        p_username: u,
+        p_password: p,
+        p_full_name: name,
+        p_department: $('new_dept').value,
+        p_whatsapp: $('new_wa').value,
+        p_address: $('new_addr').value
+      });
+
+      btn.disabled = false; btn.textContent = '+ Simpan & Buat Akun Karyawan';
+      if (error) return alert('Gagal: ' + error.message);
+
+      alert(`Akun karyawan "${u}" berhasil dibuat!`);
+      ['new_u', 'new_p', 'new_name', 'new_dept', 'new_wa', 'new_addr'].forEach(id => $(id).value = '');
+      await loadEmployees();
+    }
+
+    async function loadEmployees() {
+      const { data, error } = await sb.from('employee_profiles').select('*').eq('role', 'employee').order('full_name');
+      if (error) return alert(error.message);
+      $('empRows').innerHTML = data.map(e => `
+        <tr>
+          <td><b>${e.username}</b></td>
+          <td>${e.full_name}</td>
+          <td>${e.department || '-'}</td>
+          <td>${e.whatsapp || '-'}</td>
+          <td><span class="badge ${e.active ? 'aktif' : 'nonaktif'}">${e.active ? 'Aktif' : 'Nonaktif'}</span></td>
+          <td>
+            <button class="warn" onclick="resetPass('${e.id}', '${e.username}')">Reset Pass</button>
+            <button class="sec" onclick="toggleActive('${e.id}', ${e.active})">${e.active ? 'Nonaktifkan' : 'Aktifkan'}</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    async function resetPass(uid, uname) {
+      const np = prompt(`Masukkan password baru untuk "${uname}" (minimal 6 karakter):`);
+      if (!np) return;
+      if (np.length < 6) return alert('Password minimal 6 karakter.');
+      const { error } = await sb.rpc('admin_reset_password', { p_user_id: uid, p_new_password: np });
+      if (error) return alert('Gagal reset password: ' + error.message);
+      alert('Password berhasil diperbarui!');
+    }
+
+    async function toggleActive(uid, currentStatus) {
+      if (!confirm(`Ubah status akun menjadi ${currentStatus ? 'Nonaktif' : 'Aktif'}?`)) return;
+      const { error } = await sb.from('employee_profiles').update({ active: !currentStatus }).eq('id', uid);
+      if (error) return alert(error.message);
+      await loadEmployees();
+    }
+
+    sb.auth.getSession().then(x => { if (x.data.session) checkSession(); });
+  </script>
+</body>
+</html>
