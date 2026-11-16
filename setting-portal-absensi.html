@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#CE1126">
+  <title>Setting Portal Absensi | CV Karyasula Indonesia Steel</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    :root{--red:#e50914;--red-dark:#b80710;--ink:#171b26;--muted:#687080;--line:#e8eaf0}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;color:var(--ink);min-height:100vh;background:linear-gradient(135deg,#f8fafc 0%,#fff 42%,#fff1f2 100%)}
+    header{height:78px;background:rgba(255,255,255,.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(226,229,236,.8);display:flex;align-items:center;justify-content:space-between;padding:0 clamp(18px,6vw,80px);box-shadow:0 8px 30px rgba(20,28,45,.07)}
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+    .brand img{width:46px;height:46px;object-fit:contain}
+    .brand strong{display:block;font-size:14px}
+    .brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-top:3px}
+    .back{color:#424958;text-decoration:none;font-size:13px;font-weight:700;padding:10px 14px;border-radius:30px;background:#fff;border:1px solid #e9eaf0}
+    .back:hover{color:var(--red);border-color:#ffc6cb}
+    main{width:min(1040px,calc(100% - 36px));margin:36px auto 54px}
+    section{background:rgba(255,255,255,.92);border:1px solid #fff;border-radius:22px;padding:28px;margin-bottom:22px;box-shadow:0 16px 42px rgba(28,35,52,.07)}
+    h2{margin:0 0 8px;font-size:22px;letter-spacing:-.3px}
+    .muted{color:var(--muted);font-size:13px;line-height:1.6}
+    label{display:block;font-size:12px;font-weight:700;color:#424958;margin-bottom:5px}
+    input{padding:12px;border:1px solid #dce0e8;border-radius:11px;margin-bottom:14px;width:100%;font-size:14px;font-family:inherit}
+    input:focus{outline:none;border-color:var(--red)}
+    button{border:0;border-radius:12px;padding:13px 18px;background:linear-gradient(135deg,#f01420,#b80710);color:#fff;font-weight:800;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 8px 18px rgba(229,9,20,.18)}
+    button:hover{filter:brightness(1.05)}
+    button.sec{background:#fff;color:var(--ink);border:1px solid #dce0e8;box-shadow:none}
+    button.sec:hover{border-color:var(--red);color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+    .stat{padding:18px;border-radius:16px;background:#f8fafc;border:1px solid #e8eaf0}
+    .stat span{font-size:12px;color:var(--muted);font-weight:600}
+    .stat b{font-size:28px;display:block;color:var(--red);margin-top:4px}
+    @media(max-width:680px){header{height:70px;padding:0 16px}.brand img{width:38px;height:38px}.brand strong{font-size:11px}.back{font-size:11px;padding:8px 10px}}
+  </style>
+</head>
+<body>
+  <header>
+    <a class="brand" href="portal-adm.html">
+      <img src="logo%20ksl.png" alt="Logo Karyasula" onerror="this.src='https://github.com/karyasulaindonesia/Karyasula-Indonesia/raw/main/logo%20ksl.png'">
+      <span><strong>CV KARYASULA INDONESIA STEEL</strong><small>Setting Portal Absensi</small></span>
+    </a>
+    <a class="back" href="portal-adm.html"><i class="fa-solid fa-arrow-left"></i> Portal ADM</a>
+  </header>
+
+  <main>
+    <!-- LOGIN ADMIN -->
+    <section id="login">
+      <h2><i class="fa-solid fa-shield-halved" style="color:var(--red)"></i> Login Administrator</h2>
+      <p class="muted" style="margin-bottom:18px">Masuk menggunakan akun Administrator untuk mengatur lokasi GPS kantor dan jadwal absensi.</p>
+      <div class="grid">
+        <div><label>Email Admin</label><input id="email" type="email" placeholder="admin@..."></div>
+        <div><label>Password</label><input id="pass" type="password" placeholder="••••••••"></div>
+      </div>
+      <button onclick="adminLogin()"><i class="fa-solid fa-right-to-bracket"></i> Masuk Pengaturan</button>
+      <p id="msg" style="color:var(--red);font-weight:700;font-size:13px"></p>
+    </section>
+
+    <!-- DASHBOARD & PENGATURAN -->
+    <div id="panel" hidden>
+      <section>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+          <div>
+            <h2>Ringkasan Kehadiran Hari Ini</h2>
+            <div class="muted" id="adminName"></div>
+          </div>
+          <button class="sec" onclick="adminLogout()"><i class="fa-solid fa-right-from-bracket"></i> Keluar Sesi</button>
+        </div>
+        <div class="grid">
+          <div class="stat"><span>Total Karyawan Aktif</span><b id="stEmp">-</b></div>
+          <div class="stat"><span>Hadir Hari Ini</span><b id="stIn">-</b></div>
+          <div class="stat"><span>Terlambat Hari Ini</span><b id="stLate">-</b></div>
+        </div>
+      </section>
+
+      <section>
+        <h2><i class="fa-solid fa-location-dot" style="color:var(--red)"></i> Konfigurasi Lokasi Kantor & Jam Kerja</h2>
+        <p class="muted" style="margin-bottom:18px">Karyawan hanya diizinkan melakukan absensi jika posisi GPS berada di dalam radius yang ditentukan.</p>
+
+        <div class="grid">
+          <div><label>Nama Kantor / Workshop</label><input id="office_name"></div>
+          <div><label>Radius Toleransi (Meter)</label><input id="radius_m" type="number" min="10" max="5000"></div>
+        </div>
+
+        <div class="grid">
+          <div><label>Latitude Kantor</label><input id="office_lat" type="number" step="any" placeholder="-7.812345"></div>
+          <div><label>Longitude Kantor</label><input id="office_lng" type="number" step="any" placeholder="112.012345"></div>
+        </div>
+
+        <p style="margin:0 0 18px">
+          <button type="button" class="sec" onclick="useCurrentGPS()"><i class="fa-solid fa-crosshairs"></i> Ambil Koordinat Lokasi Saya Sekarang</button>
+        </p>
+
+        <div class="grid">
+          <div><label>Mulai Absen Masuk</label><input id="checkin_start" type="time"></div>
+          <div><label>Batas Tepat Waktu Masuk</label><input id="checkin_end" type="time"></div>
+          <div><label>Mulai Absen Pulang</label><input id="checkout_start" type="time"></div>
+          <div><label>Batas Absen Pulang</label><input id="checkout_end" type="time"></div>
+        </div>
+
+        <button onclick="saveSettings()"><i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan</button>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    async function adminLogin() {
+      const r = await sb.auth.signInWithPassword({ email: $('email').value.trim(), password: $('pass').value });
+      if (r.error) return $('msg').textContent = 'Login gagal: ' + r.error.message;
+      await checkAdminSession();
+    }
+
+    async function checkAdminSession() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+      const p = await sb.from('employee_profiles').select('*').eq('id', user.id).single();
+      if (p.data?.role !== 'admin' || !p.data?.active) {
+        await sb.auth.signOut();
+        return alert('Akses admin ditolak.');
+      }
+      $('login').hidden = true;
+      $('panel').hidden = false;
+      $('adminName').textContent = 'Login sebagai: ' + p.data.full_name;
+      await loadDashboard();
+    }
+
+    async function loadDashboard() {
+      const today = new Date().toLocaleDateString('en-CA');
+      const [empRes, recRes, setRes] = await Promise.all([
+        sb.from('employee_profiles').select('id', { count: 'exact' }).eq('role', 'employee').eq('active', true),
+        sb.from('attendance_records').select('status').eq('work_date', today),
+        sb.from('attendance_settings').select('*').eq('id', 1).single()
+      ]);
+
+      $('stEmp').textContent = empRes.count || 0;
+      const recs = recRes.data || [];
+      $('stIn').textContent = recs.length;
+      $('stLate').textContent = recs.filter(x => x.status === 'Terlambat').length;
+
+      if (setRes.data) {
+        const s = setRes.data;
+        $('office_name').value = s.office_name || '';
+        $('radius_m').value = s.radius_m || 50;
+        $('office_lat').value = s.office_lat || '';
+        $('office_lng').value = s.office_lng || '';
+        $('checkin_start').value = s.checkin_start?.slice(0, 5) || '07:00';
+        $('checkin_end').value = s.checkin_end?.slice(0, 5) || '08:00';
+        $('checkout_start').value = s.checkout_start?.slice(0, 5) || '16:00';
+        $('checkout_end').value = s.checkout_end?.slice(0, 5) || '17:00';
+      }
+    }
+
+    function useCurrentGPS() {
+      navigator.geolocation.getCurrentPosition(p => {
+        $('office_lat').value = p.coords.latitude.toFixed(6);
+        $('office_lng').value = p.coords.longitude.toFixed(6);
+        alert(`Koordinat berhasil diambil (Akurasi ${Math.round(p.coords.accuracy)} meter). Klik "Simpan Pengaturan" untuk menerapkan.`);
+      }, e => alert('Gagal mengambil GPS: ' + e.message), { enableHighAccuracy: true });
+    }
+
+    async function saveSettings() {
+      const payload = {
+        office_name: $('office_name').value.trim(),
+        radius_m: parseInt($('radius_m').value, 10) || 50,
+        office_lat: parseFloat($('office_lat').value) || null,
+        office_lng: parseFloat($('office_lng').value) || null,
+        checkin_start: $('checkin_start').value,
+        checkin_end: $('checkin_end').value,
+        checkout_start: $('checkout_start').value,
+        checkout_end: $('checkout_end').value
+      };
+      const { error } = await sb.from('attendance_settings').update(payload).eq('id', 1);
+      if (error) return alert('Gagal menyimpan: ' + error.message);
+      alert('Pengaturan lokasi dan jam kerja berhasil disimpan!');
+    }
+
+    async function adminLogout() {
+      await sb.auth.signOut();
+      location.reload();
+    }
+
+    sb.auth.getSession().then(x => { if (x.data.session) checkAdminSession(); });
+  </script>
+</body>
+</html>
