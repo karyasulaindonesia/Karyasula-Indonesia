@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Absensi Karyawan · CV Karyasula Indonesia Steel</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(135deg,#fff,#fff1f2);font:15px 'Segoe UI',Arial,sans-serif;color:#202535;min-height:100vh}
+    header{padding:16px max(18px,calc((100% - 960px)/2));background:#fff;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+    a{color:#d91020;text-decoration:none;font-weight:600}
+    main{max-width:960px;margin:28px auto;padding:0 16px}
+    section{background:#fff;padding:24px;border:1px solid #eee;border-radius:16px;margin:16px 0;box-shadow:0 8px 25px rgba(0,0,0,0.04)}
+    input{padding:12px;border:1px solid #ddd;border-radius:9px;margin:5px 0 14px;width:100%;font-size:15px}
+    button{background:#d91020;color:#fff;border:0;padding:12px 18px;border-radius:9px;font-weight:600;cursor:pointer;font-size:14px;margin:4px 4px 4px 0}
+    button:disabled{opacity:0.5;cursor:not-allowed}
+    button.sec{background:#334155}
+    button.out{background:#0f766e}
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .muted{color:#64748b;font-size:13px}
+    .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600;background:#f1f5f9;color:#334155}
+    .badge.ok{background:#dcfce7;color:#166534}
+    .badge.warn{background:#fef3c7;color:#92400e}
+    .media-box{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0}
+    video,img{max-width:100%;width:320px;border-radius:12px;border:1px solid #e2e8f0;background:#0f172a}
+    .status-box{background:#f8fafc;border:1px solid #e2e8f0;padding:14px;border-radius:12px;margin:12px 0}
+    @media(max-width:650px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <b>CV KARYASULA INDONESIA STEEL</b>
+    <a href="portal-adm.html">Portal Admin &rarr;</a>
+  </header>
+
+  <main>
+    <!-- FORM LOGIN KARYAWAN -->
+    <section id="login">
+      <h2 style="margin-top:0">Absensi Karyawan</h2>
+      <p class="muted">Masuk menggunakan Username dan Password yang diberikan oleh Admin.</p>
+      <div class="grid">
+        <div><label>Username</label><input id="u" placeholder="contoh: budi" autocomplete="username"></div>
+        <div><label>Password</label><input id="p" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      </div>
+      <button id="btnLogin" onclick="login()">Masuk</button>
+      <p id="msg" style="color:#d91020;font-weight:600"></p>
+    </section>
+
+    <!-- AREA KERJA ABSENSI -->
+    <section id="work" hidden>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+        <div>
+          <h2 id="who" style="margin:0"></h2>
+          <p id="config" class="muted" style="margin:4px 0 0">Memuat pengaturan...</p>
+        </div>
+        <button class="sec" onclick="logout()">Keluar</button>
+      </div>
+
+      <div class="status-box" id="todayStatus">Memeriksa status absensi hari ini...</div>
+
+      <div class="media-box">
+        <div>
+          <div class="muted" style="margin-bottom:4px">Kamera Live</div>
+          <video id="video" autoplay playsinline></video>
+        </div>
+        <div id="previewWrap" hidden>
+          <div class="muted" style="margin-bottom:4px">Hasil Foto Selfie</div>
+          <img id="preview">
+        </div>
+      </div>
+
+      <div>
+        <button class="sec" onclick="camera()">1. Aktifkan Kamera</button>
+        <button class="sec" onclick="capture()">2. Ambil Foto</button>
+        <button class="sec" onclick="gps()">3. Cek Lokasi GPS</button>
+      </div>
+
+      <p id="gpsmsg" style="font-weight:600;margin:12px 0"></p>
+
+      <div style="border-top:1px solid #eee;padding-top:14px;margin-top:14px">
+        <button id="btnIn" onclick="save('in')">Absen Masuk</button>
+        <button id="btnOut" class="out" onclick="save('out')">Absen Pulang</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let prof, settings, blob, loc, stream;
+    const mail = u => u.trim().toLowerCase() + '@' + LOGIN_DOMAIN;
+
+    async function login() {
+      const btn = $('btnLogin');
+      btn.disabled = true; btn.textContent = 'Memproses...';
+      $('msg').textContent = '';
+      const { error } = await sb.auth.signInWithPassword({ email: mail($('u').value), password: $('p').value });
+      btn.disabled = false; btn.textContent = 'Masuk';
+      if (error) { $('msg').textContent = 'Login gagal: Username atau password salah.'; return; }
+      await init();
+    }
+
+    async function init() {
+      const { data: { user } } = await sb.auth.getUser();
+      if (!user) return;
+
+      const r = await sb.from('employee_profiles').select('*').eq('id', user.id).single();
+      if (r.error || r.data.role !== 'employee' || !r.data.active) {
+        alert('Akun karyawan tidak ditemukan atau sedang dinonaktifkan.');
+        await sb.auth.signOut();
+        return;
+      }
+      prof = r.data;
+      $('login').hidden = true;
+      $('work').hidden = false;
+      $('who').textContent = prof.full_name + (prof.department ? ' · ' + prof.department : '');
+
+      const s = await sb.from('attendance_settings').select('*').eq('id', 1).single();
+      settings = s.data;
+      if (!settings?.office_lat || !settings?.office_lng) {
+        $('config').innerHTML = '<span style="color:#d91020;font-weight:bold">Lokasi kantor belum dikonfigurasi Admin. Absensi diblokir.</span>';
+      } else {
+        $('config').textContent = `Radius maks: ${settings.radius_m}m · Masuk: ${settings.checkin_start.slice(0,5)}–${settings.checkin_end.slice(0,5)} · Pulang: ${settings.checkout_start.slice(0,5)}–${settings.checkout_end.slice(0,5)}`;
+      }
+      await loadTodayStatus();
+    }
+
+    async function loadTodayStatus() {
+      const today = new Date().toLocaleDateString('en-CA');
+      const { data } = await sb.from('attendance_records').select('*').eq('employee_id', prof.id).eq('work_date', today).maybeSingle();
+      if (!data) {
+        $('todayStatus').innerHTML = `<b>Status Hari Ini (${formatDate(today)}):</b> <span class="badge warn">Belum Absen Masuk</span>`;
+      } else {
+        const stBadge = data.status === 'Tepat waktu' ? 'ok' : 'warn';
+        $('todayStatus').innerHTML = `
+          <b>Status Hari Ini (${formatDate(today)}):</b> <span class="badge ${stBadge}">${data.status}</span><br>
+          <span class="muted">Jam Masuk: <b>${formatTime(data.checkin_at)}</b> · Jam Pulang: <b>${formatTime(data.checkout_at)}</b></span>
+        `;
+      }
+    }
+
+    async function camera() {
+      try {
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        $('video').srcObject = stream;
+      } catch (e) {
+        alert('Gagal membuka kamera. Pastikan menggunakan HTTPS dan izin kamera diaktifkan.');
+      }
+    }
+
+    async function capture() {
+      const v = $('video');
+      if (!v.videoWidth) return alert('Aktifkan kamera terlebih dahulu.');
+      const c = document.createElement('canvas');
+      c.width = v.videoWidth; c.height = v.videoHeight;
+      c.getContext('2d').drawImage(v, 0, 0);
+      let q = 0.8;
+      for (let i = 0; i < 10; i++) {
+        blob = await new Promise(r => c.toBlob(r, 'image/jpeg', q));
+        if (blob.size <= 102400) break;
+        q *= 0.82;
+      }
+      if (blob.size > 102400) {
+        const w = c.width * 0.75, h = c.height * 0.75;
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(v, 0, 0, w, h);
+        blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.65));
+      }
+      $('preview').src = URL.createObjectURL(blob);
+      $('previewWrap').hidden = false;
+      $('gpsmsg').textContent = `Foto siap (${Math.round(blob.size / 1024)} KB). Silakan lanjut cek GPS.`;
+    }
+
+    function dist(a, b, c, d) {
+      const R = 6371000, r = x => x * Math.PI / 180;
+      const x = r(c - a), y = r(d - b);
+      const h = Math.sin(x / 2) ** 2 + Math.cos(r(a)) * Math.cos(r(c)) * Math.sin(y / 2) ** 2;
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+
+    function gps() {
+      if (!settings?.office_lat || !settings?.office_lng) return alert('Koordinat kantor belum diatur Admin.');
+      $('gpsmsg').textContent = 'Mencari titik koordinat GPS...';
+      navigator.geolocation.getCurrentPosition(p => {
+        loc = { lat: p.coords.latitude, lng: p.coords.longitude, acc: p.coords.accuracy };
+        const d = dist(loc.lat, loc.lng, settings.office_lat, settings.office_lng);
+        if (d <= settings.radius_m && loc.acc <= 100) {
+          $('gpsmsg').innerHTML = `<span style="color:#166534">✔ Lokasi Valid: Jarak ${Math.round(d)} m dari kantor (Akurasi ${Math.round(loc.acc)} m)</span>`;
+        } else {
+          $('gpsmsg').innerHTML = `<span style="color:#d91020">✖ Lokasi Ditolak: Jarak ${Math.round(d)} m (Maks ${settings.radius_m} m), Akurasi ${Math.round(loc.acc)} m</span>`;
+        }
+      }, e => {
+        $('gpsmsg').textContent = '';
+        alert('Gagal mendapatkan lokasi: ' + e.message);
+      }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    }
+
+    async function save(k) {
+      if (!settings?.office_lat || !settings?.office_lng) return alert('Lokasi kerja belum dikonfigurasi.');
+      if (!blob) return alert('Ambil foto selfie terlebih dahulu!');
+      if (!loc) return alert('Periksa lokasi GPS terlebih dahulu!');
+      const d = dist(loc.lat, loc.lng, settings.office_lat, settings.office_lng);
+      if (d > settings.radius_m || loc.acc > 100) return alert('Posisi GPS Anda berada di luar radius kantor.');
+
+      const btn = k === 'in' ? $('btnIn') : $('btnOut');
+      btn.disabled = true;
+      const origText = btn.textContent;
+      btn.textContent = 'Menyimpan...';
+
+      try {
+        const fd = new FormData();
+        fd.append('file', blob, 'absensi.jpg');
+        fd.append('upload_preset', CLOUDINARY_PRESET);
+        fd.append('folder', 'absensi_karyasula');
+
+        const up = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
+        const j = await up.json();
+        if (!up.ok) throw new Error(j.error?.message || 'Upload foto ke Cloudinary gagal');
+
+        const now = new Date();
+        const date = now.toLocaleDateString('en-CA');
+        const time = now.toTimeString().slice(0, 8);
+
+        if (k === 'in') {
+          const batasMasuk = settings.checkin_end || '08:00:00';
+          const row = {
+            employee_id: prof.id,
+            work_date: date,
+            latitude: loc.lat,
+            longitude: loc.lng,
+            gps_accuracy: loc.acc,
+            checkin_at: now.toISOString(),
+            checkin_photo: j.secure_url,
+            status: time <= batasMasuk ? 'Tepat waktu' : 'Terlambat'
+          };
+          const { error } = await sb.from('attendance_records').upsert(row, { onConflict: 'employee_id,work_date' });
+          if (error) throw error;
+        } else {
+          const old = await sb.from('attendance_records').select('id').eq('employee_id', prof.id).eq('work_date', date).single();
+          if (old.error) throw new Error('Anda belum melakukan Absen Masuk hari ini.');
+          const { error } = await sb.from('attendance_records').update({
+            checkout_at: now.toISOString(),
+            checkout_photo: j.secure_url,
+            checkout_latitude: loc.lat,
+            checkout_longitude: loc.lng,
+            checkout_accuracy: loc.acc
+          }).eq('id', old.data.id);
+          if (error) throw error;
+        }
+
+        alert(k === 'in' ? 'Absen Masuk berhasil dicatat!' : 'Absen Pulang berhasil dicatat!');
+        blob = null; loc = null;
+        $('previewWrap').hidden = true;
+        $('gpsmsg').textContent = '';
+        await loadTodayStatus();
+      } catch (err) {
+        alert('Gagal: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    }
+
+    async function logout() {
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      await sb.auth.signOut();
+      location.reload();
+    }
+
+    sb.auth.getSession().then(x => { if (x.data.session) init(); });
+  </script>
+</body>
+</html>
